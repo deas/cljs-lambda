@@ -1,0 +1,20 @@
+{
+  "name": "cljs-lambda",
+  "version": "0.0.1",
+  "private": true,
+  "devDependencies": {
+    "aws-sdk": "^2.862.0",
+    "shadow-cljs": "2.11.23"
+  },
+  "dependencies": {},
+  "scripts": {
+    "pretest": "shadow-cljs compile :test",
+    "test": "node build/test.js",
+    "start": "node dist/node/index.js",
+    "watch": "shadow-cljs watch :node",
+    "repl": "shadow-cljs cljs-repl :node",
+    "build": "shadow-cljs release :lambda --debug",
+    "predeploy": "npm run build",
+    "deploy": "terraform apply"
+  }
+}

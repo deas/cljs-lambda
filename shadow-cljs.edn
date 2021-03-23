@@ -1,0 +1,22 @@
+;; shadow-cljs configuration
+{;; :lein true
+ :source-paths
+ ["src/dev"
+  "src/main"
+  "src/test"]
+
+ :dependencies [[org.clojure/core.async "1.3.610"]
+                #_[cljs-aws "0.4.3"]]
+
+ :builds
+ {:lambda {:target :node-library
+           :output-to "./dist/lambda/index.js"
+           :exports {:stopInstances lambda.main/handle-stop
+                     :startInstances lambda.main/handle-start}
+           :compiler-options {:infer-externs :auto}}
+  :node {:target :node-script
+         :output-to "./dist/node/index.js"
+         :main lambda.main/start
+         :devtools {:after-load lambda.main/reload}}
+  :test {:target :node-test
+         :output-to "./build/test.js"}}}
