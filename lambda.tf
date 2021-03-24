@@ -20,6 +20,12 @@ module "cljs_ec2_stop" {
       resources = ["*"]
     }
   }
+  allowed_triggers = {
+    EC2StopInstancesRule = {
+      principal  = "events.amazonaws.com"
+      source_arn = aws_cloudwatch_event_rule.stop_instances.arn
+    }
+  }
 }
 
 // TODO: Appears the same hash confuses terraform module

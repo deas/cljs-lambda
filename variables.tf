@@ -22,8 +22,7 @@ variable "stop_event" {
   default     = <<EOF
 {
   "TagKeys": ["stop-daily"],
-  "DryRun" : true,
-  "Debug" : false 
+  "DryRun" : false
 }
 EOF
 }
