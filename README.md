@@ -26,7 +26,7 @@ yarn start || npm start
 Compile an optimized version
 
 ```shell
-yarn release || npm run release
+yarn run build || npm run build
 ```
 REPL
 ```shell
@@ -39,4 +39,5 @@ yarn run deploy || npm run deploy
 ```
 
 ## TODO
+- Dedupe repetitive CLJS
 - Tests (-> namespace `integration-test`)
