@@ -1,3 +1,4 @@
+data "aws_caller_identity" "current" {}
 resource "random_pet" "this" {
   length = 2
 }
@@ -45,7 +46,7 @@ module "cljs_ec2_stop" {
   allowed_triggers = {
     EC2StopInstancesRule = {
       principal  = "events.amazonaws.com"
-      source_arn = aws_cloudwatch_event_rule.stop_instances.arn
+      source_arn = aws_cloudwatch_event_rule.stop_instances["daily"].arn
     }
   }
 }
@@ -85,33 +86,38 @@ module "cljs_ec2_start" {
   }
   allowed_triggers = {
     EC2StartInstancesRule = {
-      principal  = "events.amazonaws.com"
-      source_arn = aws_cloudwatch_event_rule.start_instances.arn
+      principal = "events.amazonaws.com"
+      #	arn:aws:events:eu-central-1:648642952529:rule/EC2StartInstancesEvent
+      source_arn = aws_cloudwatch_event_rule.start_instances["daily"].arn
     }
   }
 
 }
 
 resource "aws_cloudwatch_event_rule" "stop_instances" {
-  name                = "EC2StopInstancesEvent"
+  for_each            = var.stops
+  name                = "EC2StopInstancesEvent-${each.key}"
   description         = "EC2 Stop Instances Event"
-  schedule_expression = var.stop_schedule
+  schedule_expression = each.value.schedule
 }
 
 resource "aws_cloudwatch_event_target" "stop_instances" {
-  rule  = aws_cloudwatch_event_rule.stop_instances.name
-  arn   = module.cljs_ec2_stop.this_lambda_function_arn
-  input = var.stop_event
+  for_each = var.stops
+  rule     = aws_cloudwatch_event_rule.stop_instances[each.key].name
+  arn      = module.cljs_ec2_stop.this_lambda_function_arn
+  input    = each.value.event
 }
 
 resource "aws_cloudwatch_event_rule" "start_instances" {
-  name                = "EC2StartInstancesEvent"
+  for_each            = var.starts
+  name                = "EC2StartInstancesEvent-${each.key}"
   description         = "EC2 Start Instances Event"
-  schedule_expression = var.start_schedule
+  schedule_expression = each.value.schedule
 }
 
 resource "aws_cloudwatch_event_target" "start_instances" {
-  rule  = aws_cloudwatch_event_rule.start_instances.name
-  arn   = module.cljs_ec2_start.this_lambda_function_arn
-  input = var.start_event
+  for_each = var.starts
+  rule     = aws_cloudwatch_event_rule.start_instances[each.key].name
+  arn      = module.cljs_ec2_start.this_lambda_function_arn
+  input    = each.value.event
 }
