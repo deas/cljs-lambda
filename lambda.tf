@@ -1,4 +1,3 @@
-data "aws_caller_identity" "current" {}
 resource "random_pet" "this" {
   length = 2
 }
@@ -43,12 +42,10 @@ module "cljs_ec2_stop" {
       resources = ["*"]
     }
   }
-  allowed_triggers = {
-    EC2StopInstancesRule = {
-      principal  = "events.amazonaws.com"
-      source_arn = aws_cloudwatch_event_rule.stop_instances["daily"].arn
-    }
-  }
+  allowed_triggers = zipmap(keys(var.stops), [for s in keys(var.stops) : {
+    principal  = "events.amazonaws.com"
+    source_arn = aws_cloudwatch_event_rule.stop_instances[s].arn
+  }])
 }
 
 // TODO: Appears the same hash confuses terraform module
@@ -84,14 +81,10 @@ module "cljs_ec2_start" {
     #  resources = ["arn:aws:s3:::*"]
     #}
   }
-  allowed_triggers = {
-    EC2StartInstancesRule = {
-      principal = "events.amazonaws.com"
-      #	arn:aws:events:eu-central-1:648642952529:rule/EC2StartInstancesEvent
-      source_arn = aws_cloudwatch_event_rule.start_instances["daily"].arn
-    }
-  }
-
+  allowed_triggers = zipmap(keys(var.starts), [for s in keys(var.starts) : {
+    principal  = "events.amazonaws.com"
+    source_arn = aws_cloudwatch_event_rule.start_instances[s].arn
+  }])
 }
 
 resource "aws_cloudwatch_event_rule" "stop_instances" {

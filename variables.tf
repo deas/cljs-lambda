@@ -11,7 +11,7 @@ variable "provider_role_arn" {
 }
 
 variable "starts" {
-  description = "Starts"
+  description = "Scheduled start events"
   default = {
     daily = {
       schedule = "cron(00 5 ? * MON-FRI *)"
@@ -26,7 +26,7 @@ EOF
 }
 
 variable "stops" {
-  description = "Stops"
+  description = "Scheduled stop events"
   default = {
     daily = {
       schedule = "cron(00 16 * * ? *)"
