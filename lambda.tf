@@ -42,12 +42,10 @@ module "cljs_ec2_stop" {
       resources = ["*"]
     }
   }
-  allowed_triggers = {
-    EC2StopInstancesRule = {
-      principal  = "events.amazonaws.com"
-      source_arn = aws_cloudwatch_event_rule.stop_instances.arn
-    }
-  }
+  allowed_triggers = zipmap(keys(var.stops), [for s in keys(var.stops) : {
+    principal  = "events.amazonaws.com"
+    source_arn = aws_cloudwatch_event_rule.stop_instances[s].arn
+  }])
 }
 
 // TODO: Appears the same hash confuses terraform module
@@ -83,35 +81,36 @@ module "cljs_ec2_start" {
     #  resources = ["arn:aws:s3:::*"]
     #}
   }
-  allowed_triggers = {
-    EC2StartInstancesRule = {
-      principal  = "events.amazonaws.com"
-      source_arn = aws_cloudwatch_event_rule.start_instances.arn
-    }
-  }
-
+  allowed_triggers = zipmap(keys(var.starts), [for s in keys(var.starts) : {
+    principal  = "events.amazonaws.com"
+    source_arn = aws_cloudwatch_event_rule.start_instances[s].arn
+  }])
 }
 
 resource "aws_cloudwatch_event_rule" "stop_instances" {
-  name                = "EC2StopInstancesEvent"
+  for_each            = var.stops
+  name                = "EC2StopInstancesEvent-${each.key}"
   description         = "EC2 Stop Instances Event"
-  schedule_expression = var.stop_schedule
+  schedule_expression = each.value.schedule
 }
 
 resource "aws_cloudwatch_event_target" "stop_instances" {
-  rule  = aws_cloudwatch_event_rule.stop_instances.name
-  arn   = module.cljs_ec2_stop.this_lambda_function_arn
-  input = var.stop_event
+  for_each = var.stops
+  rule     = aws_cloudwatch_event_rule.stop_instances[each.key].name
+  arn      = module.cljs_ec2_stop.this_lambda_function_arn
+  input    = each.value.event
 }
 
 resource "aws_cloudwatch_event_rule" "start_instances" {
-  name                = "EC2StartInstancesEvent"
+  for_each            = var.starts
+  name                = "EC2StartInstancesEvent-${each.key}"
   description         = "EC2 Start Instances Event"
-  schedule_expression = var.start_schedule
+  schedule_expression = each.value.schedule
 }
 
 resource "aws_cloudwatch_event_target" "start_instances" {
-  rule  = aws_cloudwatch_event_rule.start_instances.name
-  arn   = module.cljs_ec2_start.this_lambda_function_arn
-  input = var.start_event
+  for_each = var.starts
+  rule     = aws_cloudwatch_event_rule.start_instances[each.key].name
+  arn      = module.cljs_ec2_start.this_lambda_function_arn
+  input    = each.value.event
 }
